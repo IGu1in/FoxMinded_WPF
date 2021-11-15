@@ -3,57 +3,131 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Windows.Controls;
 using TreeSize.Model;
 
 namespace TreeSize.ViewModel
 {
     public class ApplicationViewModel : INotifyPropertyChanged
     {
-        public IEnumerable<Folder> Folders { get; set; }
-        public ObservableCollection<File> Files { get; set; }
-        public ObservableCollection<object> Items { get; set; }
-        private IEnumerable<object> _items
+        public ObservableCollection<Folder> Folders { get; set; }
+        public ObservableCollection<string> Drives { get; set; }
+        private string _selectedDrives;
+        public string SelectedDrives {
+            get => _selectedDrives;
+            set
+            {
+                _selectedDrives = value;
+                //Folders.Clear();
+                //var tree = ChooseDisk(_selectedDrives);
+
+                //foreach (var item in tree)
+                //{
+                //    Folders.Add(item);
+                //}
+
+                OnPropertyChanged("SelectedDrives");
+            }
+        }
+
+        private Command.Command addCommand;
+        public Command.Command AddCommand
         {
             get
             {
-                foreach (var folder in Folders)
-                    yield return folder;
-                foreach (var file in Files)
-                    yield return file;
+                return addCommand ??
+                  (addCommand = new Command.Command(o => {
+                      Folders.Clear();
+                      var tree = ChooseDisk(o.ToString());
+
+                      foreach (var item in tree)
+                      {
+                          Folders.Add(item);
+                      }
+                  }));
             }
         }
 
         public ApplicationViewModel()
         {
-            Files = new ObservableCollection<File>();
-            Folders = BuildTree("C:\\FoxMined");
-            Items = new ObservableCollection<object>(_items);
+            Drives = GetDrives();
+            Drives.Add("C:\\FoxMined");
+            Drives.Add("C:\\UNN");
+            Folders = new ObservableCollection<Folder>();
         }
 
-        private IEnumerable<Folder> BuildTree(string path)
+        private ObservableCollection<string> GetDrives()
         {
-            foreach (var dir in System.IO.Directory.EnumerateDirectories(path))
-            {
-                var folder = new Folder(System.IO.Path.GetFileName(dir), System.IO.Path.GetFullPath(dir), BuildTree(dir).ToArray());
-                FindFile(folder);
+            var localDrives = new ObservableCollection<string>();
+            System.IO.DriveInfo[] drives = System.IO.DriveInfo.GetDrives();
 
-                yield return folder;
+            foreach (System.IO.DriveInfo drive in drives)
+            {
+                localDrives.Add(drive.Name);
             }
+
+            return localDrives;
         }
 
-        private void FindFile(Folder folder)
+        private ObservableCollection<Folder> ChooseDisk(string path)
         {
-            foreach (var file in System.IO.Directory.EnumerateFiles(folder.FullName))
+            var fold = new ObservableCollection<Folder>();
+
+            if (path != null)
             {
-                folder.Files.Add(new File(System.IO.Path.GetFileName(file), System.IO.Path.GetFullPath(file)));
+                Parallel.ForEach(System.IO.Directory.EnumerateDirectories(path), dir =>
+               {
+                   var subFolder = new Folder(System.IO.Path.GetFileName(dir), System.IO.Path.GetFullPath(dir));
+                   AddFolder(subFolder);
+                   AddFile(subFolder);
+                   subFolder.InizializeItems();
+                   fold.Add(subFolder);
+               });
             }
+
+            return fold;
+        }
+
+        private void AddFolder(Folder folder)
+        {
+            //try
+            //{
+                Parallel.ForEach(System.IO.Directory.EnumerateDirectories(folder.FullName), dir =>
+               {
+                   var subFolder = new Folder(System.IO.Path.GetFileName(dir), System.IO.Path.GetFullPath(dir));
+                   AddFolder(subFolder);
+                   AddFile(subFolder);
+                   subFolder.InizializeItems();
+                   folder.Folders.Add(subFolder);
+               });
+            //}
+            //catch
+            //{
+
+            //}
+        }
+
+        private void AddFile(Folder folder)
+        {
+            //try
+            //{
+                Parallel.ForEach(System.IO.Directory.EnumerateFiles(folder.FullName), fileWay =>
+                {
+                    var file = new File(System.IO.Path.GetFileName(fileWay), System.IO.Path.GetFullPath(fileWay));
+                    folder.Files.Add(file);
+                });
+            //}
+            //catch
+            //{
+
+            //}
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
         public void OnPropertyChanged([CallerMemberName] string prop = "")
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
         }
     }
 }

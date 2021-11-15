@@ -1,48 +1,30 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace TreeSize.Model
 {
-    public class File : INotifyPropertyChanged
+    public class File : FileStructure, INotifyPropertyChanged
     {
-        private string _name;
-        private string _fullName;
         private string _size;
+        private string _info;
         private long _totalSize = 0;
-        public string Name
+        public new string Info
         {
-            get => _name;
+            get => _info;
             set
             {
-                _name = value;
-                OnPropertyChanged("Name");
+                _info = value;
+                OnPropertyChanged("Info");
             }
         }
-        public string FullName
+  
+        public File(string name, string fullName) : base(name, fullName)
         {
-            get => _fullName;
-            set
-            {
-                _fullName = value;
-                OnPropertyChanged("FullName");
-            }
-        }
-        public string Size
-        {
-            get => _size;
-            set
-            {
-                _size = value;
-                OnPropertyChanged("Size");
-            }
-        }
-
-        public File(string name, string fullName)
-        {
-            _name = name;
-            _fullName = fullName;
             _size = FormatSize();
+            Items = new ObservableCollection<Folder>();
+            _info = Name + " Size: " + _size;
         }
 
         private string FormatSize()
@@ -51,7 +33,7 @@ namespace TreeSize.Model
 
             if (_totalSize > Math.Pow(1024, 3))
             {
-                string size = Math.Round(_totalSize / Math.Pow(1024, 1), 3).ToString() + " Гб.";
+                string size = Math.Round(_totalSize / Math.Pow(1024, 3), 3).ToString() + " Гб.";
 
                 return size;
             }
@@ -59,7 +41,7 @@ namespace TreeSize.Model
             {
                 if (_totalSize > Math.Pow(1024, 2))
                 {
-                    string size = Math.Round(_totalSize / Math.Pow(1024, 1), 3).ToString() + " Мб.";
+                    string size = Math.Round(_totalSize / Math.Pow(1024, 2), 3).ToString() + " Мб.";
 
                     return size;
                 }
@@ -85,13 +67,6 @@ namespace TreeSize.Model
         {
             System.IO.FileInfo fi = new System.IO.FileInfo(path);
             _totalSize += fi.Length;
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        public void OnPropertyChanged([CallerMemberName] string prop = "")
-        {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));
         }
     }
 }

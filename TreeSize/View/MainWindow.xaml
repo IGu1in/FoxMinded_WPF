@@ -3,16 +3,26 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TreeSize.ViewModel"
+        xmlns:local="clr-namespace:TreeSize"
+        xmlns:model="clr-namespace:TreeSize.Model" xmlns:viewmodel="clr-namespace:TreeSize.ViewModel" d:DataContext="{d:DesignInstance Type=viewmodel:ApplicationViewModel}"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+
     <Grid>
-        <TreeView >
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Items}">
-                    <TextBlock Text="{Binding Name}"/>
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+        <StackPanel>
+            <ListBox  x:Name="ListBox" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrives}">
+            </ListBox>
+            <Button Command="{Binding AddCommand}"
+                CommandParameter="{Binding ElementName=ListBox, Path=SelectedItem}">Get files
+            </Button>
+            <TreeView ItemsSource="{Binding Folders}">
+                <TreeView.Resources>
+                  <HierarchicalDataTemplate DataType="{x:Type model:FileStructure}" ItemsSource="{Binding Items}">
+                     <TreeViewItem Header="{Binding Info}">
+                     </TreeViewItem>                    
+                  </HierarchicalDataTemplate>
+                 </TreeView.Resources>
+             </TreeView>
+        </StackPanel>
     </Grid>
 </Window>
