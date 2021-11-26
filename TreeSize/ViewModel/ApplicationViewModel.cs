@@ -1,8 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using TreeSize.Model;
@@ -11,6 +14,7 @@ namespace TreeSize.ViewModel
 {
     public class ApplicationViewModel : INotifyPropertyChanged
     {
+        //private List<string> _errors;
         public ObservableCollection<Folder> Folders { get; set; }
         public ObservableCollection<string> Drives { get; set; }
         private string _selectedDrives;
@@ -55,14 +59,19 @@ namespace TreeSize.ViewModel
             Drives.Add("C:\\FoxMined");
             Drives.Add("C:\\UNN");
             Folders = new ObservableCollection<Folder>();
+            //IsDirectoryWritable(@"C:\Temp");
+            //IsDirectoryWritable(@"‪C:\Users\Default\Cookies");
+            // _errors = new List<string>();
+            //Folders = ChooseDisk(@"C:\Users\Default\Cookies");
+            Folders = ChooseDisk(@"C:\Program Files (x86)\Microsoft\EdgeUpdate");
         }
 
         private ObservableCollection<string> GetDrives()
         {
             var localDrives = new ObservableCollection<string>();
-            System.IO.DriveInfo[] drives = System.IO.DriveInfo.GetDrives();
+            DriveInfo[] drives = DriveInfo.GetDrives();
 
-            foreach (System.IO.DriveInfo drive in drives)
+            foreach (DriveInfo drive in drives)
             {
                 localDrives.Add(drive.Name);
             }
@@ -76,52 +85,123 @@ namespace TreeSize.ViewModel
 
             if (path != null)
             {
-                Parallel.ForEach(System.IO.Directory.EnumerateDirectories(path), dir =>
-               {
-                   var subFolder = new Folder(System.IO.Path.GetFileName(dir), System.IO.Path.GetFullPath(dir));
-                   AddFolder(subFolder);
-                   AddFile(subFolder);
-                   subFolder.InizializeItems();
-                   fold.Add(subFolder);
-               });
+                if (IsDirectoryWritable(path))
+                {
+                    Parallel.ForEach(Directory.EnumerateDirectories(path), dir =>
+                    {
+                        if (IsDirectoryWritable(dir))
+                        {
+                            var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir));
+                            AddFolder(subFolder);
+                            AddFile(subFolder);
+                            subFolder.InizializeItems();
+                            fold.Add(subFolder);
+                        }
+                        else
+                        {
+                            var subFolder = new Folder(dir, dir);
+                            subFolder.InizializeItems();
+                            fold.Add(subFolder);
+                        }
+                    });
+                }
+
+                //if (IsDirectoryWritable(path))
+                //{
+                //    var directories = Directory.EnumerateDirectories(path);
+
+                //    foreach (var dir in directories)
+                //    {
+                //        if (IsDirectoryWritable(dir))
+                //        {
+                //            var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir));
+                //            AddFolder(subFolder);
+                //            AddFile(subFolder);
+                //            subFolder.InizializeItems();
+                //            fold.Add(subFolder);
+                //        }
+                //        else
+                //        {
+                //            var subFolder = new Folder(dir, dir);
+                //            subFolder.InizializeItems();
+                //            fold.Add(subFolder);
+                //        }
+                //    }
+                //}
             }
 
             return fold;
         }
 
+        private bool IsDirectoryWritable(string dirPath)
+        {
+            try
+            {
+                var directories = Directory.EnumerateDirectories(dirPath);
+
+                return true;
+            }
+            catch (System.UnauthorizedAccessException)
+            {
+                return false;
+            }
+        }
+
         private void AddFolder(Folder folder)
         {
-            //try
-            //{
-                Parallel.ForEach(System.IO.Directory.EnumerateDirectories(folder.FullName), dir =>
-               {
-                   var subFolder = new Folder(System.IO.Path.GetFileName(dir), System.IO.Path.GetFullPath(dir));
-                   AddFolder(subFolder);
-                   AddFile(subFolder);
-                   subFolder.InizializeItems();
-                   folder.Folders.Add(subFolder);
-               });
-            //}
-            //catch
-            //{
+        //    var directories = Directory.EnumerateDirectories(folder.FullName);
 
-            //}
+        //    foreach (var dir in directories)
+        //    {
+        //        if (IsDirectoryWritable(dir))
+        //        {
+        //            var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir));
+        //            AddFolder(subFolder);
+        //            AddFile(subFolder);
+        //            subFolder.InizializeItems();
+        //            folder.Folders.Add(subFolder);
+        //        }
+        //        else
+        //        {
+        //            var subFolder = new Folder(dir, dir);
+        //            subFolder.InizializeItems();
+        //            folder.Folders.Add(subFolder);
+        //        }
+        //    }
+
+            Parallel.ForEach(Directory.EnumerateDirectories(folder.FullName), dir => //полные имена каталогов
+            {
+                if (IsDirectoryWritable(dir))
+                {
+                    var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir));
+                    AddFolder(subFolder);
+                    AddFile(subFolder);
+                    subFolder.InizializeItems();
+                    folder.Folders.Add(subFolder);
+                }
+                else
+                {
+                    var subFolder = new Folder(dir, dir);
+                    subFolder.InizializeItems();
+                    folder.Folders.Add(subFolder);
+                }
+            });
         }
 
         private void AddFile(Folder folder)
         {
-            //try
+            //var directories = Directory.EnumerateFiles(folder.FullName);
+            //foreach(var fileWay in directories)
             //{
-                Parallel.ForEach(System.IO.Directory.EnumerateFiles(folder.FullName), fileWay =>
-                {
-                    var file = new File(System.IO.Path.GetFileName(fileWay), System.IO.Path.GetFullPath(fileWay));
-                    folder.Files.Add(file);
-                });
+            //    var file = new Model.File(Path.GetFileName(fileWay), Path.GetFullPath(fileWay));
+            //    folder.Files.Add(file);
             //}
-            //catch
-            //{
 
-            //}
+            Parallel.ForEach(Directory.EnumerateFiles(folder.FullName), fileWay =>
+            {
+                var file = new Model.File(Path.GetFileName(fileWay), Path.GetFullPath(fileWay));
+                folder.Files.Add(file);
+            });
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

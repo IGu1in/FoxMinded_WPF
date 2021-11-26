@@ -37,7 +37,8 @@ namespace TreeSize.Model
         public Folder(string name, string fullName) : base(name, fullName)
         {
             Folders = new ObservableCollection<Folder>();
-            _size = FormatSize();
+            _size = "0";
+            //_size = FormatSize();
             Files = new ObservableCollection<File>();
             _info = Name + " Size: " + _size;
         }
@@ -72,7 +73,14 @@ namespace TreeSize.Model
 
         private string FormatSize()
         {
-            GetTotalSize(FullName);
+            try
+            {
+                GetTotalSize(FullName);
+            }
+            catch
+            {
+                return "0 б";
+            }
 
             if (_totalSize > Math.Pow(1024, 3))
             {
