@@ -21,6 +21,7 @@ namespace TreeSize.Model
             }
         }
 
+        public bool IsAvailable { get; set; }
         public ObservableCollection<File> Files { get; set; }
         public ObservableCollection<Folder> Folders { get; set; }
         public new ObservableCollection<object> Items { get; set; }
@@ -34,11 +35,12 @@ namespace TreeSize.Model
                     yield return file;
             }
         }
-        public Folder(string name, string fullName) : base(name, fullName)
+
+        public Folder(string name, string fullName, bool isAvailable) : base(name, fullName)
         {
+            IsAvailable = isAvailable;
             Folders = new ObservableCollection<Folder>();
-            _size = "0";
-            //_size = FormatSize();
+            _size = FormatSize();
             Files = new ObservableCollection<File>();
             _info = Name + " Size: " + _size;
         }
@@ -73,72 +75,65 @@ namespace TreeSize.Model
 
         private string FormatSize()
         {
-            try
+            if (IsAvailable)
             {
                 GetTotalSize(FullName);
-            }
-            catch
-            {
-                return "0 б";
-            }
 
-            if (_totalSize > Math.Pow(1024, 3))
-            {
-                string size = Math.Round(_totalSize / Math.Pow(1024, 3), 3).ToString() + " Гб.";
-
-                return size;
-            }
-            else
-            {
-                if (_totalSize > Math.Pow(1024, 2))
+                if (_totalSize > Math.Pow(1024, 3))
                 {
-                    string size = Math.Round(_totalSize / Math.Pow(1024, 2), 3).ToString() + " Мб.";
+                    string size = Math.Round(_totalSize / Math.Pow(1024, 3), 3).ToString() + " Гб.";
 
                     return size;
                 }
                 else
                 {
-                    if (_totalSize > Math.Pow(1024, 1))
+                    if (_totalSize > Math.Pow(1024, 2))
                     {
-                        string size = Math.Round(_totalSize / Math.Pow(1024, 1), 3).ToString() + " Кб.";
+                        string size = Math.Round(_totalSize / Math.Pow(1024, 2), 3).ToString() + " Мб.";
 
                         return size;
                     }
                     else
                     {
-                        string size = (_totalSize).ToString() + " Байт";
+                        if (_totalSize > Math.Pow(1024, 1))
+                        {
+                            string size = Math.Round(_totalSize / Math.Pow(1024, 1), 3).ToString() + " Кб.";
 
-                        return size;
+                            return size;
+                        }
+                        else
+                        {
+                            string size = (_totalSize).ToString() + " Байт";
+
+                            return size;
+                        }
                     }
                 }
+            }
+            else
+            {
+                return "access denied";
             }
         }
 
         private void GetTotalSize(string directory)
         {
-            //try
-            //{
-                foreach (var file in System.IO.Directory.EnumerateFiles(directory))
-                {
-                    GetFileSize(file);
-                }
-            //}
-            //catch
-            //{
-            //    _size = "not enough rights";
-            //}
+            foreach (var file in System.IO.Directory.EnumerateFiles(directory))
+            {
+                GetFileSize(file);
+            }
 
-            //try
-            //{
-                foreach (var dir in System.IO.Directory.EnumerateDirectories(directory))
+            foreach (var dir in System.IO.Directory.EnumerateDirectories(directory))
+            {
+                try
                 {
                     GetTotalSize(dir);
                 }
-            //}
-            //catch
-            //{
-            //    _size = "not enough rights";
-            //}
+                catch
+                {
+
+                }
+            }
         }
 
         private void GetFileSize(string path)

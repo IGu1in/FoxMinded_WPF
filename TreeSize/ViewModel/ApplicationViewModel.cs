@@ -1,20 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 using TreeSize.Model;
 
 namespace TreeSize.ViewModel
 {
     public class ApplicationViewModel : INotifyPropertyChanged
     {
-        //private List<string> _errors;
         public ObservableCollection<Folder> Folders { get; set; }
         public ObservableCollection<string> Drives { get; set; }
         private string _selectedDrives;
@@ -40,16 +34,26 @@ namespace TreeSize.ViewModel
         {
             get
             {
-                return addCommand ??
-                  (addCommand = new Command.Command(o => {
-                      Folders.Clear();
-                      var tree = ChooseDisk(o.ToString());
+                return addCommand ??= new Command.Command(o => {
+                    Parallel.Invoke(
+                        () =>
+                        {
+                            Folders.Clear();
+                            var tree = ChooseDisk(o.ToString());
 
-                      foreach (var item in tree)
-                      {
-                          Folders.Add(item);
-                      }
-                  }));
+                            foreach (var item in tree)
+                            {
+                                Folders.Add(item);
+                            }
+                        });
+                    //Folders.Clear();
+                    //var tree = ChooseDisk(o.ToString());
+
+                    //foreach (var item in tree)
+                    //{
+                    //    Folders.Add(item);
+                    //}
+                });
             }
         }
 
@@ -59,11 +63,8 @@ namespace TreeSize.ViewModel
             Drives.Add("C:\\FoxMined");
             Drives.Add("C:\\UNN");
             Folders = new ObservableCollection<Folder>();
-            //IsDirectoryWritable(@"C:\Temp");
-            //IsDirectoryWritable(@"‪C:\Users\Default\Cookies");
-            // _errors = new List<string>();
             //Folders = ChooseDisk(@"C:\Users\Default\Cookies");
-            Folders = ChooseDisk(@"C:\Program Files (x86)\Microsoft\EdgeUpdate");
+            //Folders = ChooseDisk(@"C:\Users\Default");
         }
 
         private ObservableCollection<string> GetDrives()
@@ -91,7 +92,7 @@ namespace TreeSize.ViewModel
                     {
                         if (IsDirectoryWritable(dir))
                         {
-                            var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir));
+                            var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir), true);
                             AddFolder(subFolder);
                             AddFile(subFolder);
                             subFolder.InizializeItems();
@@ -99,7 +100,7 @@ namespace TreeSize.ViewModel
                         }
                         else
                         {
-                            var subFolder = new Folder(dir, dir);
+                            var subFolder = new Folder(dir, dir, false);
                             subFolder.InizializeItems();
                             fold.Add(subFolder);
                         }
@@ -173,7 +174,7 @@ namespace TreeSize.ViewModel
             {
                 if (IsDirectoryWritable(dir))
                 {
-                    var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir));
+                    var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir), true);
                     AddFolder(subFolder);
                     AddFile(subFolder);
                     subFolder.InizializeItems();
@@ -181,7 +182,7 @@ namespace TreeSize.ViewModel
                 }
                 else
                 {
-                    var subFolder = new Folder(dir, dir);
+                    var subFolder = new Folder(dir, dir, false);
                     subFolder.InizializeItems();
                     folder.Folders.Add(subFolder);
                 }
