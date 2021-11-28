@@ -17,13 +17,6 @@ namespace TreeSize.ViewModel
             set
             {
                 _selectedDrives = value;
-                //Folders.Clear();
-                //var tree = ChooseDisk(_selectedDrives);
-
-                //foreach (var item in tree)
-                //{
-                //    Folders.Add(item);
-                //}
 
                 OnPropertyChanged("SelectedDrives");
             }
@@ -46,13 +39,6 @@ namespace TreeSize.ViewModel
                                 Folders.Add(item);
                             }
                         });
-                    //Folders.Clear();
-                    //var tree = ChooseDisk(o.ToString());
-
-                    //foreach (var item in tree)
-                    //{
-                    //    Folders.Add(item);
-                    //}
                 });
             }
         }
@@ -60,11 +46,7 @@ namespace TreeSize.ViewModel
         public ApplicationViewModel()
         {
             Drives = GetDrives();
-            Drives.Add("C:\\FoxMined");
-            Drives.Add("C:\\UNN");
             Folders = new ObservableCollection<Folder>();
-            //Folders = ChooseDisk(@"C:\Users\Default\Cookies");
-            //Folders = ChooseDisk(@"C:\Users\Default");
         }
 
         private ObservableCollection<string> GetDrives()
@@ -106,29 +88,6 @@ namespace TreeSize.ViewModel
                         }
                     });
                 }
-
-                //if (IsDirectoryWritable(path))
-                //{
-                //    var directories = Directory.EnumerateDirectories(path);
-
-                //    foreach (var dir in directories)
-                //    {
-                //        if (IsDirectoryWritable(dir))
-                //        {
-                //            var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir));
-                //            AddFolder(subFolder);
-                //            AddFile(subFolder);
-                //            subFolder.InizializeItems();
-                //            fold.Add(subFolder);
-                //        }
-                //        else
-                //        {
-                //            var subFolder = new Folder(dir, dir);
-                //            subFolder.InizializeItems();
-                //            fold.Add(subFolder);
-                //        }
-                //    }
-                //}
             }
 
             return fold;
@@ -150,26 +109,6 @@ namespace TreeSize.ViewModel
 
         private void AddFolder(Folder folder)
         {
-        //    var directories = Directory.EnumerateDirectories(folder.FullName);
-
-        //    foreach (var dir in directories)
-        //    {
-        //        if (IsDirectoryWritable(dir))
-        //        {
-        //            var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir));
-        //            AddFolder(subFolder);
-        //            AddFile(subFolder);
-        //            subFolder.InizializeItems();
-        //            folder.Folders.Add(subFolder);
-        //        }
-        //        else
-        //        {
-        //            var subFolder = new Folder(dir, dir);
-        //            subFolder.InizializeItems();
-        //            folder.Folders.Add(subFolder);
-        //        }
-        //    }
-
             Parallel.ForEach(Directory.EnumerateDirectories(folder.FullName), dir => //полные имена каталогов
             {
                 if (IsDirectoryWritable(dir))
@@ -191,13 +130,6 @@ namespace TreeSize.ViewModel
 
         private void AddFile(Folder folder)
         {
-            //var directories = Directory.EnumerateFiles(folder.FullName);
-            //foreach(var fileWay in directories)
-            //{
-            //    var file = new Model.File(Path.GetFileName(fileWay), Path.GetFullPath(fileWay));
-            //    folder.Files.Add(file);
-            //}
-
             Parallel.ForEach(Directory.EnumerateFiles(folder.FullName), fileWay =>
             {
                 var file = new Model.File(Path.GetFileName(fileWay), Path.GetFullPath(fileWay));

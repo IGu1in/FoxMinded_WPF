@@ -6,8 +6,6 @@ namespace TreeSize.Model
 {
     public class FileStructure : INotifyPropertyChanged
     {
-        //public string Info { get; set; }
-        //public ObservableCollection<object> Items { get; set; }
         private string _name;
         private string _fullName;
         private string _size;
