@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 namespace TreeSize.Model
 {
-    public class Folder : FileStructure, INotifyPropertyChanged
+    public class Folder : FileStructure
     {
         private string _size;
         private string _info;
@@ -50,29 +49,6 @@ namespace TreeSize.Model
             Items = new ObservableCollection<object>(_items);
         }
 
-        public string GetFilesInfo()
-        {
-            string info = "";
-
-            foreach (var file in Files)
-            {
-                info += file.Name + file.Size + "; ";
-            }
-
-            return info;
-        }
-
-        public IEnumerable<Folder> GetEnumerator(string path)
-        {
-            foreach (var dir in Folders)
-            {
-                var way = dir.FullName;
-                GetEnumerator(way);
-
-                yield return dir;
-            }
-        }
-
         private string FormatSize()
         {
             if (IsAvailable)
@@ -81,7 +57,7 @@ namespace TreeSize.Model
 
                 if (_totalSize > Math.Pow(1024, 3))
                 {
-                    string size = Math.Round(_totalSize / Math.Pow(1024, 3), 3).ToString() + " Гб.";
+                    string size = Math.Round(_totalSize / Math.Pow(1024, 3), 3) + " Гб.";
 
                     return size;
                 }
@@ -89,7 +65,7 @@ namespace TreeSize.Model
                 {
                     if (_totalSize > Math.Pow(1024, 2))
                     {
-                        string size = Math.Round(_totalSize / Math.Pow(1024, 2), 3).ToString() + " Мб.";
+                        string size = Math.Round(_totalSize / Math.Pow(1024, 2), 3) + " Мб.";
 
                         return size;
                     }
@@ -97,13 +73,13 @@ namespace TreeSize.Model
                     {
                         if (_totalSize > Math.Pow(1024, 1))
                         {
-                            string size = Math.Round(_totalSize / Math.Pow(1024, 1), 3).ToString() + " Кб.";
+                            string size = Math.Round(_totalSize / Math.Pow(1024, 1), 3) + " Кб.";
 
                             return size;
                         }
                         else
                         {
-                            string size = (_totalSize).ToString() + " Байт";
+                            string size = _totalSize + " Байт";
 
                             return size;
                         }

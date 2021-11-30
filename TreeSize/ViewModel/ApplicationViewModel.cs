@@ -40,14 +40,14 @@ namespace TreeSize.ViewModel
             worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
             worker.WorkerSupportsCancellation = true;
-            worker.DoWork += workerDoWork;
-            worker.ProgressChanged += workerProgressChanged;
-            worker.RunWorkerCompleted += workerRunWorkerCompleted;
+            worker.DoWork += WorkerDoWork;
+            worker.ProgressChanged += WorkerProgressChanged;
+            worker.RunWorkerCompleted += WorkerRunWorkerCompleted;
             Drives = GetDrives();
             Folders = new ObservableCollection<Folder>();
         }
 
-        void workerDoWork(object sender, DoWorkEventArgs e)
+        private void WorkerDoWork(object sender, DoWorkEventArgs e)
         {
             string path = (string)e.Argument;
 
@@ -78,14 +78,14 @@ namespace TreeSize.ViewModel
             e.Result = 1;
         }
 
-        void workerProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void WorkerProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             var fold = (Folder)e.UserState;
             if (e.UserState != null)
                 Folders.Add(fold);
         }
 
-        void workerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void WorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             System.Windows.MessageBox.Show("Files received");
         }
@@ -107,7 +107,7 @@ namespace TreeSize.ViewModel
         {
             try
             {
-                var directories = Directory.EnumerateDirectories(dirPath);
+                Directory.EnumerateDirectories(dirPath);
 
                 return true;
             }

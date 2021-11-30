@@ -9,20 +9,22 @@
         Title="MainWindow" Height="450" Width="800">
 
     <Grid>
-        <StackPanel>
-            <ListBox  x:Name="ListBox" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrives}">
-            </ListBox>
-            <Button Command="{Binding AddCommand}"
+        <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
+            <StackPanel>
+                <ListBox  x:Name="ListBox" ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrives}">
+                </ListBox>
+                <Button Command="{Binding AddCommand}"
                 CommandParameter="{Binding ElementName=ListBox, Path=SelectedItem}">Get files
-            </Button>
-            <TreeView ItemsSource="{Binding Folders}">
-                <TreeView.Resources>
-                  <HierarchicalDataTemplate DataType="{x:Type model:FileStructure}" ItemsSource="{Binding Items}">
-                     <TreeViewItem Header="{Binding Info}">
-                     </TreeViewItem>                    
-                  </HierarchicalDataTemplate>
-                 </TreeView.Resources>
-             </TreeView>
-        </StackPanel>
+                </Button>
+                <TreeView ItemsSource="{Binding Folders}">
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate DataType="{x:Type model:FileStructure}" ItemsSource="{Binding Items}">
+                            <TreeViewItem Header="{Binding Info}">
+                            </TreeViewItem>
+                        </HierarchicalDataTemplate>
+                    </TreeView.Resources>
+                </TreeView>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Window>
