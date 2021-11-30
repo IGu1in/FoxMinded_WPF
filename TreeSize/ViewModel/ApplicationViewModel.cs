@@ -44,8 +44,6 @@ namespace TreeSize.ViewModel
             worker.ProgressChanged += workerProgressChanged;
             worker.RunWorkerCompleted += workerRunWorkerCompleted;
             Drives = GetDrives();
-            Drives.Add(@"C:\UNN");
-            Drives.Add(@"C:\FoxMined");
             Folders = new ObservableCollection<Folder>();
         }
 
