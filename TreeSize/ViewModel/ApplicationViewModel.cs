@@ -9,6 +9,7 @@ namespace TreeSize.ViewModel
 {
     public class ApplicationViewModel : INotifyPropertyChanged
     {
+        private BackgroundWorker worker;
         public ObservableCollection<Folder> Folders { get; set; }
         public ObservableCollection<string> Drives { get; set; }
         private string _selectedDrives;
@@ -28,25 +29,67 @@ namespace TreeSize.ViewModel
             get
             {
                 return addCommand ??= new Command.Command(o => {
-                    Parallel.Invoke(
-                        () =>
-                        {
-                            Folders.Clear();
-                            var tree = ChooseDisk(o.ToString());
-
-                            foreach (var item in tree)
-                            {
-                                Folders.Add(item);
-                            }
-                        });
+                    Folders.Clear();                    
+                    worker.RunWorkerAsync(o.ToString());
                 });
             }
         }
 
         public ApplicationViewModel()
         {
+            worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
+            worker.DoWork += workerDoWork;
+            worker.ProgressChanged += workerProgressChanged;
+            worker.RunWorkerCompleted += workerRunWorkerCompleted;
             Drives = GetDrives();
+            Drives.Add(@"C:\UNN");
+            Drives.Add(@"C:\FoxMined");
             Folders = new ObservableCollection<Folder>();
+        }
+
+        void workerDoWork(object sender, DoWorkEventArgs e)
+        {
+            string path = (string)e.Argument;
+
+            if (path != null)
+            {
+                if (IsDirectoryWritable(path))
+                {
+                    Parallel.ForEach(Directory.EnumerateDirectories(path), dir =>
+                    {
+                        if (IsDirectoryWritable(dir))
+                        {
+                                var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir), true);
+                                AddFolder(subFolder);
+                                AddFile(subFolder);
+                                subFolder.InizializeItems();
+                                (sender as BackgroundWorker).ReportProgress(100, subFolder);
+                        }
+                        else
+                        {
+                                var subFolder = new Folder(dir, dir, false);
+                                subFolder.InizializeItems();
+                                (sender as BackgroundWorker).ReportProgress(100, subFolder);
+                        }                      
+                    });
+                }
+            }
+
+            e.Result = 1;
+        }
+
+        void workerProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            var fold = (Folder)e.UserState;
+            if (e.UserState != null)
+                Folders.Add(fold);
+        }
+
+        void workerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            System.Windows.MessageBox.Show("Files received");
         }
 
         private ObservableCollection<string> GetDrives()
@@ -60,37 +103,6 @@ namespace TreeSize.ViewModel
             }
 
             return localDrives;
-        }
-
-        private ObservableCollection<Folder> ChooseDisk(string path)
-        {
-            var fold = new ObservableCollection<Folder>();
-
-            if (path != null)
-            {
-                if (IsDirectoryWritable(path))
-                {
-                    Parallel.ForEach(Directory.EnumerateDirectories(path), dir =>
-                    {
-                        if (IsDirectoryWritable(dir))
-                        {
-                            var subFolder = new Folder(Path.GetFileName(dir), Path.GetFullPath(dir), true);
-                            AddFolder(subFolder);
-                            AddFile(subFolder);
-                            subFolder.InizializeItems();
-                            fold.Add(subFolder);
-                        }
-                        else
-                        {
-                            var subFolder = new Folder(dir, dir, false);
-                            subFolder.InizializeItems();
-                            fold.Add(subFolder);
-                        }
-                    });
-                }
-            }
-
-            return fold;
         }
 
         private bool IsDirectoryWritable(string dirPath)
@@ -109,7 +121,7 @@ namespace TreeSize.ViewModel
 
         private void AddFolder(Folder folder)
         {
-            Parallel.ForEach(Directory.EnumerateDirectories(folder.FullName), dir => //полные имена каталогов
+            Parallel.ForEach(Directory.EnumerateDirectories(folder.FullName), dir =>
             {
                 if (IsDirectoryWritable(dir))
                 {
@@ -124,7 +136,7 @@ namespace TreeSize.ViewModel
                     var subFolder = new Folder(dir, dir, false);
                     subFolder.InizializeItems();
                     folder.Folders.Add(subFolder);
-                }
+                }                
             });
         }
 
