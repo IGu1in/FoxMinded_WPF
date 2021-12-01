@@ -29,9 +29,13 @@ namespace TreeSize.Model
             get
             {
                 foreach (var folder in Folders)
+                {
                     yield return folder;
+                }
                 foreach (var file in Files)
+                {
                     yield return file;
+                }
             }
         }
 
@@ -61,35 +65,31 @@ namespace TreeSize.Model
 
                     return size;
                 }
+
+                if (_totalSize > Math.Pow(1024, 2))
+                {
+                    string size = Math.Round(_totalSize / Math.Pow(1024, 2), 3) + " Мб.";
+
+                    return size;
+                }
+
+                if (_totalSize > Math.Pow(1024, 1))
+                {
+                    string size = Math.Round(_totalSize / Math.Pow(1024, 1), 3) + " Кб.";
+
+                    return size;
+                }
                 else
                 {
-                    if (_totalSize > Math.Pow(1024, 2))
-                    {
-                        string size = Math.Round(_totalSize / Math.Pow(1024, 2), 3) + " Мб.";
+                    string size = _totalSize + " Байт";
 
-                        return size;
-                    }
-                    else
-                    {
-                        if (_totalSize > Math.Pow(1024, 1))
-                        {
-                            string size = Math.Round(_totalSize / Math.Pow(1024, 1), 3) + " Кб.";
-
-                            return size;
-                        }
-                        else
-                        {
-                            string size = _totalSize + " Байт";
-
-                            return size;
-                        }
-                    }
+                    return size;
                 }
+                    
+                
             }
-            else
-            {
-                return "access denied";
-            }
+
+            return "access denied";            
         }
 
         private void GetTotalSize(string directory)

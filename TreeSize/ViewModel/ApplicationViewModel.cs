@@ -23,12 +23,12 @@ namespace TreeSize.ViewModel
             }
         }
 
-        private Command.Command addCommand;
+        private Command.Command _addCommand;
         public Command.Command AddCommand
         {
             get
             {
-                return addCommand ??= new Command.Command(o => {
+                return _addCommand ??= new Command.Command(o => {
                     Folders.Clear();                    
                     worker.RunWorkerAsync(o.ToString());
                 });
